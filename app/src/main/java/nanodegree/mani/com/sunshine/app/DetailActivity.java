@@ -31,21 +31,13 @@ public class DetailActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.share_menu,menu);
         MenuItem item=menu.findItem(R.id.action_share);
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+        mShareActionProvider.setShareIntent(createShareIntent());
         return true;
 
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId())
-        {
-            case R.id.action_share:
-                shareFunction();
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
-    public void shareFunction()
+    private Intent createShareIntent()
     {
         TextView textView=(TextView)findViewById(R.id.textView);
         String data =textView.getText().toString();
@@ -53,8 +45,8 @@ public class DetailActivity extends AppCompatActivity {
         String finalData = data+identifier;
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.putExtra(Intent.EXTRA_TEXT,finalData);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
         intent.setType("text/plain");
-        mShareActionProvider.setShareIntent(intent);
+        return intent;
     }
 }

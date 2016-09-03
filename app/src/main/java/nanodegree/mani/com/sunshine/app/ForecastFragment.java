@@ -68,8 +68,10 @@ public class ForecastFragment extends Fragment {
             case R.id.settings:
                 Intent intent=new Intent(getActivity(),SettingsActivity.class);
                 startActivity(intent);
+                return true;
             case R.id.action_viewMap:
                 viewOnMap();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
