@@ -4,6 +4,9 @@
         android:id="@+id/action_refresh"
         android:title="Refresh" />
     <item
+        android:id="@+id/action_viewMap"
+        android:title="ViewMap"/>
+    <item
         android:id="@+id/settings"
         android:title="settings"/>
 

@@ -3,4 +3,23 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!--seittings-->
+    <string name="pref_location_title">Location</string>
+    <string name="pref_location_key">location</string>
+    <string name="pref_location_default_value">64110</string>
+
+    <!--units setting-->
+    <string name="pref_units_title">Units</string>
+    <string name="pref_units_key">units</string>
+    <string name="pref_units_default_value">celsius</string>
+
+    <array name="units_entries">
+        <item>Celsius</item>
+        <item>Fahrenheit</item>
+    </array>
+    <array name="units_values">
+        <item>celsius</item>
+        <item>fahrenheit</item>
+    </array>
 </resources>

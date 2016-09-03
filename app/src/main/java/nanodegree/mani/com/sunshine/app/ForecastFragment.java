@@ -1,8 +1,11 @@
 package nanodegree.mani.com.sunshine.app;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -27,9 +31,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 
 
 public class ForecastFragment extends Fragment {
@@ -62,9 +63,13 @@ public class ForecastFragment extends Fragment {
         switch (item.getItemId())
         {
             case R.id.action_refresh:
-                String pinCode = "94043";
-                new FetchWeatherTask().execute(pinCode);
+                updateWeather();
                 return true;
+            case R.id.settings:
+                Intent intent=new Intent(getActivity(),SettingsActivity.class);
+                startActivity(intent);
+            case R.id.action_viewMap:
+                viewOnMap();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -75,47 +80,64 @@ public class ForecastFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        //List of values
-        String pinCode = "94043";
+        SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(getContext());
+        String pinCode = preferences.getString(getString(R.string.pref_location_key),getString(R.string.pref_location_default_value));
         new FetchWeatherTask().execute(pinCode);
 
 
         //Create adapter
         forecastListView =(ListView)rootView.findViewById(R.id.listView_forecast);
+        forecastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent detailIntent = new Intent(getActivity(),DetailActivity.class);
+                detailIntent.putExtra("EXTRA_DETAIL",mArrayAdapter.getItem(position));
+                startActivity(detailIntent);
+            }
+        });
+       // List<String> weekForecast = new ArrayList<String>(Arrays.asList(strings));
+        mArrayAdapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item_forecast,R.id.list_item_forecast_textView,new ArrayList<String>());
+        //Bind adapter to List view
 
+        forecastListView.setAdapter(mArrayAdapter);
 
-
-
-       /* //Get Network info
-        ConnectivityManager manager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo connectionInfo = manager.getActiveNetworkInfo();
-        if(connectionInfo != null && connectionInfo.isConnected())
-        {
-            String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7&appid=6cf4c3a2ec7423909f538124b73d30f5";
-           // new FetchWeatherTask.execute(url);
-
-        }else {
-            Toast.makeText(getContext(),"No Internet Connection",Toast.LENGTH_SHORT).show();
-        }*/
-
-        // Inflate the layout for this fragment
         return rootView;
 
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
 
+    }
 
-        public class FetchWeatherTask extends AsyncTask<String,Void,String[]>
+    public void updateWeather()
+    {
+        SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(getContext());
+        String pinCode = preferences.getString(getString(R.string.pref_location_key),getString(R.string.pref_location_default_value));
+        new FetchWeatherTask().execute(pinCode);
+
+    }
+    public void viewOnMap()
+    {
+        SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(getContext());
+        String pinCode = preferences.getString(getString(R.string.pref_location_key),getString(R.string.pref_location_default_value));
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+        Uri mapUri = Uri.parse("geo:0,0?").buildUpon().appendQueryParameter("q",pinCode).build();
+        mapIntent.setData(mapUri);
+        startActivity(mapIntent);
+    }
+
+    public class FetchWeatherTask extends AsyncTask<String,Void,String[]>
         {
 
             @Override
             protected void onPostExecute(String[] strings) {
                 super.onPostExecute(strings);
-                List<String> weekForecast = new ArrayList<String>(Arrays.asList(strings));
-                mArrayAdapter=new ArrayAdapter<String>(getActivity(),R.layout.list_item_forecast,R.id.list_item_forecast_textView,weekForecast);
-                //Bind adapter to List view
+                mArrayAdapter.clear();
+                mArrayAdapter.addAll(strings);
 
-                forecastListView.setAdapter(mArrayAdapter);
 
             }
 
@@ -230,6 +252,14 @@ public class ForecastFragment extends Fragment {
              * Prepare the weather high/lows for presentation.
              */
             private String formatHighLows(double high, double low) {
+
+                SharedPreferences preferences=PreferenceManager.getDefaultSharedPreferences(getContext());
+                String unitType= preferences.getString(getString(R.string.pref_units_key),getString(R.string.pref_units_default_value));
+                if(!unitType.equals(getString(R.string.pref_units_default_value)))
+                {
+                    high=high*1.8+32;
+                    low=low*1.8+32;
+                }
                 // For presentation, assume the user doesn't care about tenths of a degree.
                 long roundedHigh = Math.round(high);
                 long roundedLow = Math.round(low);
